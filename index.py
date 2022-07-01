@@ -1,6 +1,7 @@
 from requests import Session
 import datetime
 import psycopg2
+import schedule
 
 
 def create_server_connection():
@@ -31,20 +32,30 @@ def get_data():
 
 
 def process(conn, json):
-    cur = conn.cursor()
     now = datetime.datetime.now()
-    for record in json['records']:
-        insert = "INSERT INTO data (nom, places_restantes, derniere_mise_a_jour_base, now) " \
-                 "VALUES ('{nom}', {places_restantes}, '{derniere_mise_a_jour_base}', '{now}')" \
-            .replace('{nom}', record['fields']['nom'])\
-            .replace('{places_restantes}', str(record['fields']['places_restantes']))\
-            .replace('{derniere_mise_a_jour_base}', record['fields']['derniere_mise_a_jour_base'])\
-            .replace('{now}', str(now))
-        cur.execute(insert)
-    conn.commit()
-    conn.close()
+    if now.hour > 7 & now.hour < 23:
+        cur = conn.cursor()
+        for record in json['records']:
+            insert = "INSERT INTO data (nom, places_restantes, derniere_mise_a_jour_base, now) " \
+                     "VALUES ('{nom}', {places_restantes}, '{derniere_mise_a_jour_base}', '{now}')" \
+                .replace('{nom}', record['fields']['nom']) \
+                .replace('{places_restantes}', str(record['fields']['places_restantes'])) \
+                .replace('{derniere_mise_a_jour_base}', record['fields']['derniere_mise_a_jour_base']) \
+                .replace('{now}', str(now))
+            cur.execute(insert)
+        conn.commit()
+        print("Insert data : {now}".replace('{now}', str(now)))
+    else:
+        print("Data no insert : {now}".replace('{now}', str(now)))
+
+
+def job():
+    if connection:
+        process(connection, get_data())
 
 
 connection = create_server_connection()
-if connection:
-    process(connection, get_data())
+schedule.every().hours.do(job)
+
+while True:
+    schedule.run_pending()

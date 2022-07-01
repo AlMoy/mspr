@@ -1,8 +1,9 @@
-pip~=21.3.1
-wheel~=0.37.1
-certifi~=2022.5.18.1
-psycopg2~=2.9.3
-idna~=3.3
-urllib3~=1.26.9
-setuptools~=60.2.0
-requests~=2.27.1
+pip
+wheel
+certifi
+psycopg2
+idna
+urllib3
+setuptools
+requests
+schedule
